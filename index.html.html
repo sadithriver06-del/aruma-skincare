@@ -1,0 +1,172 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Aruma Skincare</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config={theme:{extend:{colors:{rp:'#F9DFE7',rs:'#F2B9CB',rm:'#C75D80',bg:'#8C2343',bw:'#FFF9FB'}}}}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;background:#F9DFE7;font-family:'Poppins',system-ui,sans-serif;color:#5a1a30}
+button{transition:transform .15s,background .2s}button:active{transform:scale(.96)}
+@keyframes scan{0%{top:6%}50%{top:90%}100%{top:6%}}.scan{animation:scan 1.4s ease-in-out infinite}
+@keyframes fin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.fin{animation:fin .35s ease}
+@keyframes dot{0%,80%,100%{opacity:.2}40%{opacity:1}}.dot{animation:dot 1s infinite}
+@keyframes flo{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}.flo{animation:flo 3s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style></head><body><div id="root"></div>
+<script>
+const {useState,useEffect,useRef}=React;const h=htm.bind(React.createElement);
+const ld=(k,d)=>{try{const v=localStorage.getItem('aruma_'+k);return v?JSON.parse(v):d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem('aruma_'+k,JSON.stringify(v))}catch(e){}};
+function useP(k,d){const[s,set]=useState(()=>ld(k,d));useEffect(()=>sv(k,s),[s]);return[s,set]}
+const uid=()=>Math.random().toString(36).slice(2,8);
+const Bottle=({kind='tube',c='#F2B9CB',s=90})=>h`<svg width=${s} height=${s} viewBox="0 0 100 100" aria-hidden="true">
+${kind==='tube'&&h`<g><rect x="35" y="12" width="30" height="64" rx="8" fill=${c}/><rect x="35" y="72" width="30" height="14" rx="4" fill="#fff"/><rect x="35" y="12" width="30" height="8" rx="3" fill="#C75D80" opacity=".4"/></g>`}
+${kind==='dropper'&&h`<g><circle cx="50" cy="14" r="8" fill="#C75D80"/><rect x="42" y="20" width="16" height="12" fill="#F2B9CB"/><rect x="30" y="32" width="40" height="54" rx="10" fill=${c}/><rect x="38" y="48" width="24" height="16" rx="3" fill="#fff" opacity=".7"/></g>`}
+${kind==='jar'&&h`<g><rect x="20" y="36" width="60" height="16" rx="6" fill="#C75D80"/><rect x="22" y="50" width="56" height="34" rx="9" fill=${c}/><rect x="34" y="60" width="32" height="12" rx="3" fill="#fff" opacity=".7"/></g>`}</svg>`;
+const PRODUCTS=[
+{id:'p1',name:'Espuma limpiadora suave',type:'Limpiador facial',kind:'tube',c:'#F2B9CB',ing:'Agua, glicerina, extracto de té verde, pantenol, betaína',ben:'Limpia sin resecar y deja la piel fresca y cómoda.',use:'Aplica sobre el rostro húmedo, masajea 30 segundos y enjuaga con agua tibia. Úsala mañana y noche.',pre:'Evita el contacto con los ojos. Suspende su uso si notas irritación.'},
+{id:'p2',name:'Sérum hidratante de ácido hialurónico',type:'Sérum hidratante',kind:'dropper',c:'#C75D80',ing:'Agua, ácido hialurónico, niacinamida 2%, glicerina, alantoína',ben:'Aporta hidratación ligera y mejora la sensación de suavidad.',use:'Después de limpiar, aplica 2–3 gotas sobre la piel ligeramente húmeda, antes de la crema.',pre:'Haz una prueba en el antebrazo antes del primer uso. Consulta a un especialista si tu piel es muy reactiva.'},
+{id:'p3',name:'Protector solar fluido SPF 50+',type:'Protector solar SPF 50+',kind:'jar',c:'#F9DFE7',ing:'Filtros UVA/UVB, agua, vitamina E, extracto de centella asiática',ben:'Protege frente a la radiación solar y no deja sensación pesada.',use:'Aplica como último paso de la rutina de día. Reaplica cada 2–3 horas si estás al aire libre.',pre:'Uso externo. No sustituye otras medidas de protección solar.'}];
+const QS=[
+{k:'tipo',q:'¿Cuál es tu tipo de piel?',o:['Seca','Grasa','Mixta','Sensible','No estoy segura']},
+{k:'preo',q:'¿Qué te preocupa principalmente?',o:['Acné','Manchas','Deshidratación','Textura','Exceso de brillo']},
+{k:'exp',q:'¿Qué experiencia tienes con skincare?',o:['Principiante','Intermedia','Avanzada']},
+{k:'tiempo',q:'¿Cuánto tiempo deseas dedicar a tu rutina?',o:['5 minutos','10 minutos','Más de 10 minutos']}];
+const FAQ=[
+['¿En qué orden debo aplicar mis productos?','Como regla general: de la textura más ligera a la más espesa. Limpiador → sérum → crema hidratante → protector solar (solo de día). Espera unos segundos entre pasos para que cada producto se absorba.'],
+['¿Puedo combinar diferentes sérums?','Algunos sí, pero conviene introducirlos de uno en uno y observar cómo reacciona tu piel. Evita sumar varios activos fuertes a la vez. Lee la etiqueta de cada producto y, si tienes dudas, consulta a un especialista.'],
+['¿Cómo empezar una rutina básica?','Empieza con tres pasos: limpiador, hidratante y protector solar por la mañana; limpiador e hidratante por la noche. Cuando tu piel se acostumbre, puedes sumar un sérum.'],
+['¿Cuándo debo acudir a un dermatólogo?','Si tienes acné persistente o doloroso, manchas que cambian, enrojecimiento intenso, picazón o reacciones tras usar un producto, consulta a un dermatólogo. Esta demo no reemplaza una consulta médica.']];
+const TIPS=['Tu protector solar es el paso más importante de la mañana ☀️','Introduce un producto nuevo a la vez y observa tu piel 1–2 semanas.','Beber agua y dormir bien también cuidan tu piel 💧','La constancia vale más que tener muchos productos.'];
+const DEF={am:[['Limpiador facial'],['Sérum hidratante'],['Crema hidratante'],['Protector solar SPF 50+']],pm:[['Limpiador facial'],['Sérum hidratante'],['Crema hidratante']]};
+const mk=a=>a.map(([name])=>({id:uid(),name,done:false}));
+const Btn=({children,onClick,v='p',cls='',dis})=>h`<button disabled=${dis} onClick=${onClick} class=${'rounded-full px-5 py-3 font-semibold text-sm shadow-sm '+(v==='p'?'bg-bg text-bw ':v==='s'?'bg-rm text-white ':'bg-white text-bg border border-rs ')+(dis?'opacity-40 ':'')+cls}>${children}</button>`;
+const Card=({children,cls=''})=>h`<div class=${'bg-white rounded-3xl p-4 shadow-[0_4px_18px_rgba(199,93,128,.12)] '+cls}>${children}</div>`;
+
+function Register({onDone}){
+const[n,setN]=useState('');const[a,setA]=useState('');const[e,setE]=useState('');
+const ok=()=>{if(!n.trim()){setE('Escribe tu nombre para continuar.');return}if(!(+a>=10&&+a<=100)){setE('Ingresa una edad válida.');return}onDone({name:n.trim(),age:+a})};
+return h`<div class="min-h-screen flex flex-col items-center justify-center text-center px-8 bg-gradient-to-b from-rp to-bw fin">
+<div class="flex items-end gap-1 flo"><${Bottle} kind="tube" s=${64}/><${Bottle} kind="dropper" c="#C75D80" s=${80}/><${Bottle} kind="jar" s=${64}/></div>
+<h1 class="text-3xl font-bold text-bg mt-5">Aruma Skincare</h1><p class="text-rm mt-1">Cuéntanos quién eres para empezar</p>
+<div class="w-full max-w-xs mt-6 space-y-3 text-left">
+<label class="block text-xs font-semibold text-bg">Tu nombre<input autoFocus value=${n} onInput=${x=>setN(x.target.value)} onKeyDown=${x=>x.key==='Enter'&&ok()} placeholder="Ej. Camila Torres" class="mt-1 w-full border border-rs rounded-full px-4 py-3 text-sm bg-white font-normal"/></label>
+<label class="block text-xs font-semibold text-bg">Tu edad<input type="number" value=${a} onInput=${x=>setA(x.target.value)} onKeyDown=${x=>x.key==='Enter'&&ok()} placeholder="Ej. 25" class="mt-1 w-full border border-rs rounded-full px-4 py-3 text-sm bg-white font-normal"/></label>
+${e&&h`<p class="text-xs text-bg">${e}</p>`}
+<${Btn} cls="w-full py-4 text-base" onClick=${ok}>Registrarme<//></div>
+<p class="text-xs text-bg/50 mt-6">Tus datos se guardan solo en tu dispositivo.</p></div>`}
+
+function Welcome({go,prof}){return h`<div class="min-h-screen flex flex-col items-center justify-center text-center px-8 bg-gradient-to-b from-rp to-bw fin">
+<div class="flex items-end gap-1 flo"><${Bottle} kind="tube" s=${86}/><${Bottle} kind="dropper" c="#C75D80" s=${104}/><${Bottle} kind="jar" s=${86}/></div>
+<h1 class="text-4xl font-bold text-bg mt-6 leading-tight">Aruma<br/>Skincare</h1>
+<p class="text-bg font-semibold mt-3">Hola, ${prof.name.split(' ')[0]} ♡</p><p class="text-rm mt-1 text-lg">Tu piel, tu momento</p>
+<p class="text-sm text-bg/70 mt-4 max-w-xs">Organiza tu rutina, conoce tus productos y resuelve tus dudas en un solo lugar.</p>
+<${Btn} cls="mt-8 px-10 py-4 text-base" onClick=${()=>go('quiz')}>Comenzar<//>
+<p class="text-xs text-bg/50 mt-6">Prototipo académico · No es una app médica</p></div>`}
+
+function Quiz({ans,setAns,go}){
+const[i,setI]=useState(0);const[a,setA]=useState(ans||{});const done=i>=QS.length;
+if(done){const t=a.tipo||'No estoy segura';return h`<div class="min-h-screen px-6 pt-10 pb-10 bg-bw fin"><div class="max-w-md mx-auto text-center">
+<div class="text-5xl">🌸</div><h2 class="text-2xl font-bold text-bg mt-3">¡Listo! Este es tu resumen</h2>
+<${Card} cls="mt-5 text-left space-y-2"><p><b>Piel:</b> ${t}</p><p><b>Te preocupa:</b> ${a.preo}</p><p><b>Experiencia:</b> ${a.exp}</p><p><b>Tiempo:</b> ${a.tiempo}</p><//>
+<p class="text-xs text-bg/60 mt-4">Resultado orientativo, no es un diagnóstico dermatológico.</p>
+<div class="flex gap-3 justify-center mt-6"><${Btn} v="o" onClick=${()=>setI(0)}>Repetir<//><${Btn} onClick=${()=>{setAns(a);go('home')}}>Ir a mi panel<//></div></div></div>`}
+const q=QS[i];return h`<div class="min-h-screen px-6 pt-8 pb-10 bg-bw"><div class="max-w-md mx-auto fin" key=${i}>
+<div class="h-2 bg-rp rounded-full overflow-hidden"><div class="h-full bg-rm transition-all" style=${{width:((i+1)/QS.length*100)+'%'}}></div></div>
+<p class="text-xs text-rm mt-2">Pregunta ${i+1} de ${QS.length}</p>
+<h2 class="text-2xl font-bold text-bg mt-4 mb-5">${q.q}</h2>
+<div class="space-y-3">${q.o.map(o=>h`<button key=${o} onClick=${()=>setA({...a,[q.k]:o})} class=${'w-full text-left rounded-2xl px-4 py-4 border-2 font-medium '+(a[q.k]===o?'border-bg bg-rp text-bg':'border-rp bg-white')}>${a[q.k]===o?'✓ ':''}${o}</button>`)}</div>
+<div class="flex justify-between mt-8"><${Btn} v="o" dis=${i===0} onClick=${()=>setI(i-1)}>Anterior<//><${Btn} dis=${!a[q.k]} onClick=${()=>setI(i+1)}>${i===QS.length-1?'Ver resultado':'Siguiente'}<//></div></div></div>`}
+
+const pctOf=l=>l.length?Math.round(l.filter(x=>x.done).length/l.length*100):0;
+function Home({ans,prof,routine,go}){
+const all=[...routine.am,...routine.pm];const p=pctOf(all);const tip=TIPS[new Date().getDate()%TIPS.length];
+const F=[['routine','🌸','Mi Rutina Aruma','Organiza tus pasos AM y PM'],['qr','📷','Aruma Smart QR','Consulta la ficha de un producto'],['chat','💬','Aruma Skin Experts','Resuelve tus dudas frecuentes']];
+return h`<div class="space-y-4 fin"><div><h1 class="text-2xl font-bold text-bg">Hola, ${prof.name.split(' ')[0]} ♡</h1><p class="text-sm text-rm">Tu piel, tu momento</p></div>
+<${Card} cls="bg-gradient-to-br from-rs to-rp"><p class="text-xs text-bg/70">Tu resumen</p><p class="font-semibold text-bg mt-1">Piel ${(ans.tipo||'sin definir').toLowerCase()} · ${ans.exp||'—'}</p>
+<div class="flex flex-wrap gap-2 mt-2">${[ans.preo,ans.tiempo].filter(Boolean).map(x=>h`<span key=${x} class="bg-white/70 text-bg text-xs rounded-full px-3 py-1">${x}</span>`)}${!ans.tipo&&h`<button class="text-xs underline text-bg" onClick=${()=>go('quiz')}>Hacer cuestionario</button>`}</div><//>
+<${Card}><div class="flex justify-between text-sm"><b>Progreso de hoy</b><span class="text-rm font-semibold">${p}%</span></div><div class="h-3 bg-rp rounded-full mt-2 overflow-hidden"><div class="h-full bg-rm transition-all" style=${{width:p+'%'}}></div></div></${Card}>
+${F.map(([k,e,t,d])=>h`<button key=${k} onClick=${()=>go(k)} class="w-full text-left"><${Card} cls="flex items-center gap-3 hover:shadow-lg"><div class="w-12 h-12 rounded-2xl bg-rp flex items-center justify-center text-2xl">${e}</div><div class="flex-1"><p class="font-semibold text-bg">${t}</p><p class="text-xs text-bg/60">${d}</p></div><span class="text-rm">›</span><//></button>`)}
+<${Card} cls="bg-rp"><p class="text-xs font-semibold text-bg">Consejo del día</p><p class="text-sm mt-1">${tip}</p><//></div>`}
+
+function Routine({routine,setRoutine,rem,setRem}){
+const[tab,setTab]=useState('am');const[txt,setTxt]=useState('');const[ed,setEd]=useState(null);const[et,setEt]=useState('');const[err,setErr]=useState('');
+const list=routine[tab];const set=l=>setRoutine({...routine,[tab]:l});const p=pctOf(list);
+const add=()=>{if(!txt.trim()){setErr('Escribe el nombre del producto.');return}setErr('');set([...list,{id:uid(),name:txt.trim(),done:false}]);setTxt('')};
+const mv=(i,d)=>{const l=[...list],j=i+d;if(j<0||j>=l.length)return;[l[i],l[j]]=[l[j],l[i]];set(l)};
+const sb='w-8 h-8 rounded-full bg-rp text-bg text-sm disabled:opacity-30';
+return h`<div class="space-y-4 fin"><h1 class="text-2xl font-bold text-bg">Mi Rutina Aruma</h1>
+<div class="flex bg-rp rounded-full p-1">${[['am','☀️ Mañana'],['pm','🌙 Noche']].map(([k,l])=>h`<button key=${k} onClick=${()=>setTab(k)} class=${'flex-1 py-2 rounded-full text-sm font-semibold '+(tab===k?'bg-white text-bg shadow':'text-bg/60')}>${l}</button>`)}</div>
+<${Card}><div class="flex justify-between text-sm"><b>Progreso</b><span class="text-rm font-semibold">${p}%</span></div><div class="h-3 bg-rp rounded-full mt-2 overflow-hidden"><div class="h-full bg-rm transition-all" style=${{width:p+'%'}}></div></div>
+${p===100&&list.length>0&&h`<p class="text-sm text-bg mt-3 fin">🎉 ¡Rutina ${tab==='am'?'de la mañana':'de la noche'} completada! Tu piel te lo agradece.</p>`}<//>
+${list.length===0&&h`<${Card} cls="text-center text-sm text-bg/60">Aún no tienes pasos. Agrega tu primer producto abajo.<//>`}
+${list.map((s,i)=>h`<${Card} key=${s.id} cls="flex items-center gap-2 fin"><button aria-label="Marcar paso" onClick=${()=>set(list.map(x=>x.id===s.id?{...x,done:!x.done}:x))} class=${'w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 '+(s.done?'bg-rm border-rm text-white':'border-rs')}>${s.done?'✓':''}</button>
+<div class="flex-1 min-w-0">${ed===s.id?h`<input autoFocus value=${et} onInput=${e=>setEt(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter'&&et.trim()){set(list.map(x=>x.id===s.id?{...x,name:et.trim()}:x));setEd(null)}}} class="w-full border border-rs rounded-lg px-2 py-1 text-sm"/>`:h`<p class=${'text-sm font-medium '+(s.done?'line-through text-bg/40':'')}><span class="text-rm mr-1">${i+1}.</span>${s.name}</p>`}</div>
+${ed===s.id?h`<button class=${sb} onClick=${()=>{if(et.trim()){set(list.map(x=>x.id===s.id?{...x,name:et.trim()}:x));setEd(null)}}}>✓</button>`:h`<button aria-label="Editar" class=${sb} onClick=${()=>{setEd(s.id);setEt(s.name)}}>✎</button>`}
+<button aria-label="Subir" disabled=${i===0} class=${sb} onClick=${()=>mv(i,-1)}>↑</button><button aria-label="Bajar" disabled=${i===list.length-1} class=${sb} onClick=${()=>mv(i,1)}>↓</button>
+<button aria-label="Eliminar" class=${sb} onClick=${()=>set(list.filter(x=>x.id!==s.id))}>✕</button><//>`)}
+<${Card}><div class="flex gap-2"><input value=${txt} onInput=${e=>setTxt(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&add()} placeholder="Ej. Tónico hidratante" class="flex-1 border border-rs rounded-full px-4 py-2 text-sm min-w-0"/><${Btn} v="s" onClick=${add}>Agregar<//></div>${err&&h`<p class="text-xs text-bg mt-2">${err}</p>`}<//>
+<div class="flex items-center justify-between"><button onClick=${()=>set(list.map(x=>({...x,done:false})))} class="text-sm text-bg underline">Reiniciar rutina</button>
+<label class="flex items-center gap-2 text-sm cursor-pointer">Recordatorios<button role="switch" aria-checked=${rem} onClick=${()=>setRem(!rem)} class=${'w-11 h-6 rounded-full p-0.5 transition '+(rem?'bg-rm':'bg-rs')}><span class=${'block w-5 h-5 bg-white rounded-full transition '+(rem?'translate-x-5':'')}></span></button></label></div>
+${rem&&h`<p class="text-xs text-bg/70 fin">🔔 Simulación: te avisaríamos a las 7:00 a. m. y 9:00 p. m.</p>`}
+<p class="text-xs text-bg/50">Rutinas de ejemplo con fines educativos, no son recomendaciones médicas.</p></div>`}
+
+function QR({addToRoutine}){
+const[sel,setSel]=useState(PRODUCTS[0].id);const[st,setSt]=useState('idle');const[msg,setMsg]=useState('');const pr=PRODUCTS.find(x=>x.id===sel);
+const scan=()=>{setSt('scan');setMsg('');setTimeout(()=>setSt('done'),1500)};
+return h`<div class="space-y-4 fin"><h1 class="text-2xl font-bold text-bg">Aruma Smart QR</h1>
+<p class="text-sm text-bg/70">Elige un producto de la demo y simula el escaneo de su QR. No se usa tu cámara.</p>
+<div class="flex gap-2 overflow-x-auto pb-1">${PRODUCTS.map(x=>h`<button key=${x.id} onClick=${()=>{setSel(x.id);setSt('idle');setMsg('')}} class=${'shrink-0 rounded-2xl px-3 py-2 text-xs font-medium border-2 '+(sel===x.id?'border-bg bg-rp':'border-rp bg-white')}>${x.type}</button>`)}</div>
+<${Card} cls="flex flex-col items-center"><div class="relative w-48 h-48 rounded-3xl bg-rp flex items-center justify-center overflow-hidden"><${Bottle} kind=${pr.kind} c=${pr.c} s=${110}/>
+${['top-2 left-2 border-t-4 border-l-4','top-2 right-2 border-t-4 border-r-4','bottom-2 left-2 border-b-4 border-l-4','bottom-2 right-2 border-b-4 border-r-4'].map(c=>h`<span key=${c} class=${'absolute w-8 h-8 border-bg rounded-md '+c}></span>`)}
+${st==='scan'&&h`<div class="scan absolute left-3 right-3 h-1 bg-rm rounded-full shadow-[0_0_12px_#C75D80]"></div>`}</div>
+<p class="text-sm mt-3 font-medium">${pr.name}</p><${Btn} v="s" cls="mt-3" dis=${st==='scan'} onClick=${scan}>${st==='scan'?'Escaneando…':'Simular escaneo'}<//><//>
+${st==='done'&&h`<${Card} cls="space-y-3 fin"><div class="flex items-center gap-3"><${Bottle} kind=${pr.kind} c=${pr.c} s=${64}/><div><p class="font-bold text-bg">${pr.name}</p><p class="text-xs text-rm">${pr.type}</p></div></div>
+${[['Ingredientes',pr.ing],['Beneficios',pr.ben],['Modo de uso',pr.use],['Precauciones',pr.pre]].map(([t,d])=>h`<div key=${t}><p class="text-xs font-semibold text-rm">${t}</p><p class="text-sm">${d}</p></div>`)}
+<div class="flex gap-2 pt-1"><${Btn} cls="flex-1" onClick=${()=>setMsg(addToRoutine(pr,'am'))}>+ Rutina AM<//><${Btn} cls="flex-1" v="s" onClick=${()=>setMsg(addToRoutine(pr,'pm'))}>+ Rutina PM<//></div>
+${msg&&h`<p class="text-sm text-bg fin">${msg}</p>`}<p class="text-[11px] text-bg/50">Producto ficticio de demostración.</p><//>`}</div>`}
+
+function Chat(){
+const W={r:'bot',t:'¡Hola! Soy el asistente de Aruma Skin Experts 🌸 Esta es una demostración con respuestas educativas predefinidas: no hay un dermatólogo conectado ni ofrezco diagnósticos.'};
+const[m,setM]=useState([W]);const[t,setT]=useState('');const[typ,setTyp]=useState(false);const end=useRef();
+useEffect(()=>{end.current&&end.current.scrollIntoView({behavior:'smooth'})},[m,typ]);
+const reply=q=>{const s=q.toLowerCase();const f=FAQ.find(x=>x[0]===q);if(f)return f[1];
+if(/orden|primero|despu/.test(s))return FAQ[0][1];if(/s[eé]rum|combin|mezcl/.test(s))return FAQ[1][1];if(/b[aá]sic|empez|inici/.test(s))return FAQ[2][1];if(/dermat|m[eé]dic|acn[eé]|alergi|irrit/.test(s))return FAQ[3][1];
+return'Gracias por tu pregunta. En esta demo solo tengo respuestas sobre orden de aplicación, combinación de sérums, rutina básica y cuándo ir al dermatólogo. Prueba con una de las preguntas sugeridas.'};
+const send=q=>{q=q.trim();if(!q||typ)return;setM(x=>[...x,{r:'u',t:q}]);setT('');setTyp(true);setTimeout(()=>{setM(x=>[...x,{r:'bot',t:reply(q)}]);setTyp(false)},900)};
+return h`<div class="flex flex-col fin" style=${{minHeight:'calc(100vh - 190px)'}}><h1 class="text-2xl font-bold text-bg">Aruma Skin Experts</h1><span class="text-[11px] bg-rp text-bg rounded-full px-2 py-0.5 self-start mt-1">Demostración · sin diagnóstico médico</span>
+<div class="flex-1 space-y-3 py-4">${m.map((x,i)=>h`<div key=${i} class=${'flex fin '+(x.r==='u'?'justify-end':'')}><div class=${'max-w-[85%] rounded-3xl px-4 py-3 text-sm '+(x.r==='u'?'bg-rm text-white rounded-br-md':'bg-white shadow rounded-bl-md')}>${x.t}</div></div>`)}
+${typ&&h`<div class="flex"><div class="bg-white shadow rounded-3xl px-4 py-3 flex gap-1">${[0,1,2].map(i=>h`<span key=${i} class="dot w-2 h-2 rounded-full bg-rm" style=${{animationDelay:i*.2+'s'}}></span>`)}</div></div>`}<div ref=${end}></div></div>
+<div class="flex gap-2 overflow-x-auto pb-2">${FAQ.map(f=>h`<button key=${f[0]} onClick=${()=>send(f[0])} class="shrink-0 text-xs bg-white border border-rs rounded-full px-3 py-2 text-bg">${f[0]}</button>`)}</div>
+<div class="flex gap-2"><input value=${t} onInput=${e=>setT(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&send(t)} placeholder="Escribe tu pregunta…" class="flex-1 border border-rs rounded-full px-4 py-3 text-sm min-w-0 bg-white"/><${Btn} v="s" dis=${!t.trim()||typ} onClick=${()=>send(t)}>Enviar<//></div></div>`}
+
+function Profile({ans,prof,setProf,routine,rem,setRem,reset}){
+const[ed,setEd]=useState(false);const[f,setF]=useState(prof);const prods=[...new Set([...routine.am,...routine.pm].map(x=>x.name))];
+const save=()=>{if(!f.name.trim()||!(+f.age>0)){return}setProf({name:f.name.trim(),age:+f.age});setEd(false)};
+return h`<div class="space-y-4 fin"><div class="text-center"><div class="w-20 h-20 rounded-full bg-gradient-to-br from-rs to-rm mx-auto flex items-center justify-center text-3xl text-white font-bold">${prof.name[0]}</div>
+${ed?h`<div class="mt-3 space-y-2"><input value=${f.name} onInput=${e=>setF({...f,name:e.target.value})} class="border border-rs rounded-full px-4 py-2 text-sm text-center w-full"/><input type="number" value=${f.age} onInput=${e=>setF({...f,age:e.target.value})} class="border border-rs rounded-full px-4 py-2 text-sm text-center w-full"/><div class="flex gap-2 justify-center"><${Btn} v="o" onClick=${()=>{setF(prof);setEd(false)}}>Cancelar<//><${Btn} onClick=${save}>Guardar<//></div></div>`:h`<h1 class="text-xl font-bold text-bg mt-3">${prof.name}</h1><p class="text-sm text-rm">${prof.age} años</p><${Btn} v="o" cls="mt-3" onClick=${()=>{setF(prof);setEd(true)}}>Editar perfil<//>`}</div>
+<${Card}><p class="text-xs font-semibold text-rm">Tipo de piel</p><p class="text-sm">${ans.tipo||'Sin definir'}</p><p class="text-xs font-semibold text-rm mt-3">Objetivos</p><p class="text-sm">${[ans.preo,ans.exp&&'Nivel '+ans.exp.toLowerCase()].filter(Boolean).join(' · ')||'Sin definir'}</p><p class="text-xs font-semibold text-rm mt-3">Preferencias</p><p class="text-sm">Rutina de ${ans.tiempo||'—'}</p><//>
+<${Card}><p class="text-xs font-semibold text-rm">Productos registrados (${prods.length})</p>${prods.length?h`<div class="flex flex-wrap gap-2 mt-2">${prods.map(p=>h`<span key=${p} class="bg-rp text-bg text-xs rounded-full px-3 py-1">${p}</span>`)}</div>`:h`<p class="text-sm text-bg/60 mt-1">Aún no hay productos. Agrégalos en Mi Rutina.</p>`}<//>
+<${Card} cls="flex items-center justify-between"><span class="text-sm">Recordatorios simulados</span><button role="switch" aria-checked=${rem} onClick=${()=>setRem(!rem)} class=${'w-11 h-6 rounded-full p-0.5 transition '+(rem?'bg-rm':'bg-rs')}><span class=${'block w-5 h-5 bg-white rounded-full transition '+(rem?'translate-x-5':'')}></span></button><//>
+<button onClick=${reset} class="w-full text-sm text-bg underline">Reiniciar demo</button></div>`}
+
+function App(){
+const[scr,setScr]=useState('welcome');const[ans,setAns]=useP('ans',{});const[prof,setProf]=useP('prof2',null);
+const[routine,setRoutine]=useP('routine',{am:mk(DEF.am),pm:mk(DEF.pm)});const[rem,setRem]=useP('rem',true);
+const addToRoutine=(pr,k)=>{if(routine[k].some(x=>x.name===pr.type))return'Ese producto ya está en tu rutina '+k.toUpperCase()+'.';setRoutine({...routine,[k]:[...routine[k],{id:uid(),name:pr.type,done:false}]});return'✓ Agregado a tu rutina '+k.toUpperCase()+'.'};
+const reset=()=>{setAns({});setProf(null);setRoutine({am:mk(DEF.am),pm:mk(DEF.pm)});setScr('welcome')};
+if(!prof)return h`<div class="max-w-md mx-auto"><${Register} onDone=${setProf}/></div>`;
+if(scr==='welcome')return h`<div class="max-w-md mx-auto"><${Welcome} go=${setScr} prof=${prof}/></div>`;
+if(scr==='quiz')return h`<div class="max-w-md mx-auto"><${Quiz} ans=${ans} setAns=${setAns} go=${setScr}/></div>`;
+const NAV=[['home','🏠','Inicio'],['routine','🌸','Rutina'],['qr','📷','QR'],['chat','💬','Expertos'],['profile','👤','Perfil']];
+return h`<div class="max-w-md mx-auto min-h-screen bg-bw relative shadow-xl"><main class="px-5 pt-6 pb-28">
+${scr==='home'&&h`<${Home} ans=${ans} prof=${prof} routine=${routine} go=${setScr}/>`}
+${scr==='routine'&&h`<${Routine} routine=${routine} setRoutine=${setRoutine} rem=${rem} setRem=${setRem}/>`}
+${scr==='qr'&&h`<${QR} addToRoutine=${addToRoutine}/>`}${scr==='chat'&&h`<${Chat}/>`}
+${scr==='profile'&&h`<${Profile} ans=${ans} prof=${prof} setProf=${setProf} routine=${routine} rem=${rem} setRem=${setRem} reset=${reset}/>`}</main>
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur border-t border-rp flex justify-around pt-2" style=${{paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 8px)'}}>
+${NAV.map(([k,e,l])=>h`<button key=${k} onClick=${()=>setScr(k)} class=${'flex flex-col items-center text-[11px] px-2 py-1 rounded-2xl '+(scr===k?'text-bg font-semibold bg-rp':'text-bg/50')}><span class="text-xl">${e}</span>${l}</button>`)}</nav></div>`}
+ReactDOM.createRoot(document.getElementById('root')).render(h`<${App}/>`);
+</script></body></html>
