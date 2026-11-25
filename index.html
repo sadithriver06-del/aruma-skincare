@@ -42,6 +42,15 @@ const FAQ=[
 const TIPS=['Tu protector solar es el paso más importante de la mañana ☀️','Introduce un producto nuevo a la vez y observa tu piel 1–2 semanas.','Beber agua y dormir bien también cuidan tu piel 💧','La constancia vale más que tener muchos productos.'];
 const DEF={am:[['Limpiador facial'],['Sérum hidratante'],['Crema hidratante'],['Protector solar SPF 50+']],pm:[['Limpiador facial'],['Sérum hidratante'],['Crema hidratante']]};
 const mk=a=>a.map(([name])=>({id:uid(),name,done:false}));
+const ARUMA_URL='https://www.aruma.pe';
+const LK='block text-center rounded-full px-5 py-3 font-semibold text-sm border border-rs bg-white text-bg';
+const genRoutine=a=>{const t=a.tipo||'No estoy segura',p=a.preo,sens=t==='Sensible',mins=a.tiempo==='5 minutos'?5:a.tiempo==='10 minutos'?10:15;
+const L=(n,o)=>({id:uid(),name:n,note:o,done:false});
+const ser=sens?['Sérum calmante con centella asiática','Ayuda a calmar y cuidar la barrera de la piel']:({'Acné':['Sérum con niacinamida','Ayuda a equilibrar la piel con tendencia grasa'],'Manchas':['Sérum con vitamina C','Ideal de día, siempre con protector solar'],'Deshidratación':['Sérum de ácido hialurónico','Aporta hidratación ligera'],'Textura':['Sérum con niacinamida','Ayuda a que la piel luzca más uniforme'],'Exceso de brillo':['Sérum con niacinamida','Ayuda a controlar el brillo']})[p]||['Sérum hidratante','Aporta hidratación'];
+const pser=p==='Manchas'&&!sens?['Sérum de ácido hialurónico','Hidratación para la noche']:ser;
+const cre=({'Seca':['Crema hidratante nutritiva','Textura rica para piel seca'],'Grasa':['Gel crema ligera','Hidrata sin sentirse pesada'],'Mixta':['Crema hidratante ligera','Equilibrada para piel mixta'],'Sensible':['Crema calmante sin fragancia','Suave para piel sensible']})[t]||['Crema hidratante suave','Básica para cualquier tipo de piel'];
+const am=[L('Limpiador facial suave','Retira la grasa y suciedad de la noche')];if(mins>=15)am.push(L('Tónico hidratante','Prepara la piel para el sérum'));if(mins>=10)am.push(L(...ser));am.push(L(...cre));am.push(L('Protector solar SPF 50+','Siempre como último paso del día'));
+const pm=[];if(mins>=15&&!sens)pm.push(L('Limpiador en aceite o bálsamo','Retira protector solar y maquillaje'));pm.push(L('Limpiador facial suave','Limpia antes de dormir'));if(mins>=10)pm.push(L(...pser));pm.push(L(...cre));return{am,pm}};
 const Btn=({children,onClick,v='p',cls='',dis})=>h`<button disabled=${dis} onClick=${onClick} class=${'rounded-full px-5 py-3 font-semibold text-sm shadow-sm '+(v==='p'?'bg-bg text-bw ':v==='s'?'bg-rm text-white ':'bg-white text-bg border border-rs ')+(dis?'opacity-40 ':'')+cls}>${children}</button>`;
 const Card=({children,cls=''})=>h`<div class=${'bg-white rounded-3xl p-4 shadow-[0_4px_18px_rgba(199,93,128,.12)] '+cls}>${children}</div>`;
 
@@ -66,13 +75,13 @@ function Welcome({go,prof}){return h`<div class="min-h-screen flex flex-col item
 <${Btn} cls="mt-8 px-10 py-4 text-base" onClick=${()=>go('quiz')}>Comenzar<//>
 <p class="text-xs text-bg/50 mt-6">Prototipo académico · No es una app médica</p></div>`}
 
-function Quiz({ans,setAns,go}){
+function Quiz({ans,setAns,go,gen}){
 const[i,setI]=useState(0);const[a,setA]=useState(ans||{});const done=i>=QS.length;
 if(done){const t=a.tipo||'No estoy segura';return h`<div class="min-h-screen px-6 pt-10 pb-10 bg-bw fin"><div class="max-w-md mx-auto text-center">
 <div class="text-5xl">🌸</div><h2 class="text-2xl font-bold text-bg mt-3">¡Listo! Este es tu resumen</h2>
 <${Card} cls="mt-5 text-left space-y-2"><p><b>Piel:</b> ${t}</p><p><b>Te preocupa:</b> ${a.preo}</p><p><b>Experiencia:</b> ${a.exp}</p><p><b>Tiempo:</b> ${a.tiempo}</p><//>
 <p class="text-xs text-bg/60 mt-4">Resultado orientativo, no es un diagnóstico dermatológico.</p>
-<div class="flex gap-3 justify-center mt-6"><${Btn} v="o" onClick=${()=>setI(0)}>Repetir<//><${Btn} onClick=${()=>{setAns(a);go('home')}}>Ir a mi panel<//></div></div></div>`}
+<div class="flex flex-wrap gap-3 justify-center mt-6"><${Btn} v="s" cls="w-full" onClick=${()=>{setAns(a);gen(a);go('routine')}}>✨ Crear mi rutina<//><${Btn} v="o" onClick=${()=>setI(0)}>Repetir<//><${Btn} onClick=${()=>{setAns(a);go('home')}}>Ir a mi panel<//></div></div></div>`}
 const q=QS[i];return h`<div class="min-h-screen px-6 pt-8 pb-10 bg-bw"><div class="max-w-md mx-auto fin" key=${i}>
 <div class="h-2 bg-rp rounded-full overflow-hidden"><div class="h-full bg-rm transition-all" style=${{width:((i+1)/QS.length*100)+'%'}}></div></div>
 <p class="text-xs text-rm mt-2">Pregunta ${i+1} de ${QS.length}</p>
@@ -89,21 +98,25 @@ return h`<div class="space-y-4 fin"><div><h1 class="text-2xl font-bold text-bg">
 <div class="flex flex-wrap gap-2 mt-2">${[ans.preo,ans.tiempo].filter(Boolean).map(x=>h`<span key=${x} class="bg-white/70 text-bg text-xs rounded-full px-3 py-1">${x}</span>`)}${!ans.tipo&&h`<button class="text-xs underline text-bg" onClick=${()=>go('quiz')}>Hacer cuestionario</button>`}</div><//>
 <${Card}><div class="flex justify-between text-sm"><b>Progreso de hoy</b><span class="text-rm font-semibold">${p}%</span></div><div class="h-3 bg-rp rounded-full mt-2 overflow-hidden"><div class="h-full bg-rm transition-all" style=${{width:p+'%'}}></div></div></${Card}>
 ${F.map(([k,e,t,d])=>h`<button key=${k} onClick=${()=>go(k)} class="w-full text-left"><${Card} cls="flex items-center gap-3 hover:shadow-lg"><div class="w-12 h-12 rounded-2xl bg-rp flex items-center justify-center text-2xl">${e}</div><div class="flex-1"><p class="font-semibold text-bg">${t}</p><p class="text-xs text-bg/60">${d}</p></div><span class="text-rm">›</span><//></button>`)}
-<${Card} cls="bg-rp"><p class="text-xs font-semibold text-bg">Consejo del día</p><p class="text-sm mt-1">${tip}</p><//></div>`}
+<${Card} cls="bg-rp"><p class="text-xs font-semibold text-bg">Consejo del día</p><p class="text-sm mt-1">${tip}</p><//>
+<a href=${ARUMA_URL} target="_blank" rel="noopener noreferrer" class=${LK}>🛍️ Encuentra tus productos en Aruma ↗</a></div>`}
 
-function Routine({routine,setRoutine,rem,setRem}){
-const[tab,setTab]=useState('am');const[txt,setTxt]=useState('');const[ed,setEd]=useState(null);const[et,setEt]=useState('');const[err,setErr]=useState('');
+function Routine({routine,setRoutine,rem,setRem,ans,gen,go}){
+const[cf,setCf]=useState(false);const[gm,setGm]=useState('');const[tab,setTab]=useState('am');const[txt,setTxt]=useState('');const[ed,setEd]=useState(null);const[et,setEt]=useState('');const[err,setErr]=useState('');
 const list=routine[tab];const set=l=>setRoutine({...routine,[tab]:l});const p=pctOf(list);
 const add=()=>{if(!txt.trim()){setErr('Escribe el nombre del producto.');return}setErr('');set([...list,{id:uid(),name:txt.trim(),done:false}]);setTxt('')};
 const mv=(i,d)=>{const l=[...list],j=i+d;if(j<0||j>=l.length)return;[l[i],l[j]]=[l[j],l[i]];set(l)};
 const sb='w-8 h-8 rounded-full bg-rp text-bg text-sm disabled:opacity-30';
 return h`<div class="space-y-4 fin"><h1 class="text-2xl font-bold text-bg">Mi Rutina Aruma</h1>
+<${Card} cls="bg-gradient-to-br from-rs to-rp space-y-2"><p class="font-semibold text-bg">✨ Rutina automática</p><p class="text-xs text-bg/70">${ans.tipo?'La armamos con tus respuestas del cuestionario (piel '+ans.tipo.toLowerCase()+', '+(ans.preo||'').toLowerCase()+', '+(ans.tiempo||'').toLowerCase()+').':'Responde el cuestionario y armamos una rutina para ti.'}</p>
+<${Btn} onClick=${()=>{if(!ans.tipo){go('quiz');return}if(!cf){setCf(true);return}gen(ans);setCf(false);setGm('✓ Rutina creada. Revisa tus pasos de mañana y noche.')}}>${!ans.tipo?'Hacer cuestionario':cf?'Confirmar: reemplazar mi rutina':'Crear mi rutina'}<//>
+${gm&&h`<p class="text-xs text-bg fin">${gm}</p>`}<a href=${ARUMA_URL} target="_blank" rel="noopener noreferrer" class=${LK}>Encuentra estos productos en Aruma ↗</a><//>
 <div class="flex bg-rp rounded-full p-1">${[['am','☀️ Mañana'],['pm','🌙 Noche']].map(([k,l])=>h`<button key=${k} onClick=${()=>setTab(k)} class=${'flex-1 py-2 rounded-full text-sm font-semibold '+(tab===k?'bg-white text-bg shadow':'text-bg/60')}>${l}</button>`)}</div>
 <${Card}><div class="flex justify-between text-sm"><b>Progreso</b><span class="text-rm font-semibold">${p}%</span></div><div class="h-3 bg-rp rounded-full mt-2 overflow-hidden"><div class="h-full bg-rm transition-all" style=${{width:p+'%'}}></div></div>
 ${p===100&&list.length>0&&h`<p class="text-sm text-bg mt-3 fin">🎉 ¡Rutina ${tab==='am'?'de la mañana':'de la noche'} completada! Tu piel te lo agradece.</p>`}<//>
 ${list.length===0&&h`<${Card} cls="text-center text-sm text-bg/60">Aún no tienes pasos. Agrega tu primer producto abajo.<//>`}
 ${list.map((s,i)=>h`<${Card} key=${s.id} cls="flex items-center gap-2 fin"><button aria-label="Marcar paso" onClick=${()=>set(list.map(x=>x.id===s.id?{...x,done:!x.done}:x))} class=${'w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 '+(s.done?'bg-rm border-rm text-white':'border-rs')}>${s.done?'✓':''}</button>
-<div class="flex-1 min-w-0">${ed===s.id?h`<input autoFocus value=${et} onInput=${e=>setEt(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter'&&et.trim()){set(list.map(x=>x.id===s.id?{...x,name:et.trim()}:x));setEd(null)}}} class="w-full border border-rs rounded-lg px-2 py-1 text-sm"/>`:h`<p class=${'text-sm font-medium '+(s.done?'line-through text-bg/40':'')}><span class="text-rm mr-1">${i+1}.</span>${s.name}</p>`}</div>
+<div class="flex-1 min-w-0">${ed===s.id?h`<input autoFocus value=${et} onInput=${e=>setEt(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter'&&et.trim()){set(list.map(x=>x.id===s.id?{...x,name:et.trim()}:x));setEd(null)}}} class="w-full border border-rs rounded-lg px-2 py-1 text-sm"/>`:h`<p class=${'text-sm font-medium '+(s.done?'line-through text-bg/40':'')}><span class="text-rm mr-1">${i+1}.</span>${s.name}${s.note&&h`<span class="block text-[11px] font-normal text-bg/50 ml-4">${s.note}</span>`}</p>`}</div>
 ${ed===s.id?h`<button class=${sb} onClick=${()=>{if(et.trim()){set(list.map(x=>x.id===s.id?{...x,name:et.trim()}:x));setEd(null)}}}>✓</button>`:h`<button aria-label="Editar" class=${sb} onClick=${()=>{setEd(s.id);setEt(s.name)}}>✎</button>`}
 <button aria-label="Subir" disabled=${i===0} class=${sb} onClick=${()=>mv(i,-1)}>↑</button><button aria-label="Bajar" disabled=${i===list.length-1} class=${sb} onClick=${()=>mv(i,1)}>↓</button>
 <button aria-label="Eliminar" class=${sb} onClick=${()=>set(list.filter(x=>x.id!==s.id))}>✕</button><//>`)}
@@ -126,7 +139,7 @@ ${st==='scan'&&h`<div class="scan absolute left-3 right-3 h-1 bg-rm rounded-full
 ${st==='done'&&h`<${Card} cls="space-y-3 fin"><div class="flex items-center gap-3"><${Bottle} kind=${pr.kind} c=${pr.c} s=${64}/><div><p class="font-bold text-bg">${pr.name}</p><p class="text-xs text-rm">${pr.type}</p></div></div>
 ${[['Ingredientes',pr.ing],['Beneficios',pr.ben],['Modo de uso',pr.use],['Precauciones',pr.pre]].map(([t,d])=>h`<div key=${t}><p class="text-xs font-semibold text-rm">${t}</p><p class="text-sm">${d}</p></div>`)}
 <div class="flex gap-2 pt-1"><${Btn} cls="flex-1" onClick=${()=>setMsg(addToRoutine(pr,'am'))}>+ Rutina AM<//><${Btn} cls="flex-1" v="s" onClick=${()=>setMsg(addToRoutine(pr,'pm'))}>+ Rutina PM<//></div>
-${msg&&h`<p class="text-sm text-bg fin">${msg}</p>`}<p class="text-[11px] text-bg/50">Producto ficticio de demostración.</p><//>`}</div>`}
+${msg&&h`<p class="text-sm text-bg fin">${msg}</p>`}<a href=${ARUMA_URL} target="_blank" rel="noopener noreferrer" class=${LK}>Buscar productos similares en Aruma ↗</a><p class="text-[11px] text-bg/50">Producto ficticio de demostración.</p><//>`}</div>`}
 
 function Chat(){
 const W={r:'bot',t:'¡Hola! Soy el asistente de Aruma Skin Experts 🌸 Esta es una demostración con respuestas educativas predefinidas: no hay un dermatólogo conectado ni ofrezco diagnósticos.'};
@@ -156,14 +169,14 @@ function App(){
 const[scr,setScr]=useState('welcome');const[ans,setAns]=useP('ans',{});const[prof,setProf]=useP('prof2',null);
 const[routine,setRoutine]=useP('routine',{am:mk(DEF.am),pm:mk(DEF.pm)});const[rem,setRem]=useP('rem',true);
 const addToRoutine=(pr,k)=>{if(routine[k].some(x=>x.name===pr.type))return'Ese producto ya está en tu rutina '+k.toUpperCase()+'.';setRoutine({...routine,[k]:[...routine[k],{id:uid(),name:pr.type,done:false}]});return'✓ Agregado a tu rutina '+k.toUpperCase()+'.'};
-const reset=()=>{setAns({});setProf(null);setRoutine({am:mk(DEF.am),pm:mk(DEF.pm)});setScr('welcome')};
+const gen=a=>setRoutine(genRoutine(a));const reset=()=>{setAns({});setProf(null);setRoutine({am:mk(DEF.am),pm:mk(DEF.pm)});setScr('welcome')};
 if(!prof)return h`<div class="max-w-md mx-auto"><${Register} onDone=${setProf}/></div>`;
 if(scr==='welcome')return h`<div class="max-w-md mx-auto"><${Welcome} go=${setScr} prof=${prof}/></div>`;
-if(scr==='quiz')return h`<div class="max-w-md mx-auto"><${Quiz} ans=${ans} setAns=${setAns} go=${setScr}/></div>`;
+if(scr==='quiz')return h`<div class="max-w-md mx-auto"><${Quiz} ans=${ans} setAns=${setAns} go=${setScr} gen=${gen}/></div>`;
 const NAV=[['home','🏠','Inicio'],['routine','🌸','Rutina'],['qr','📷','QR'],['chat','💬','Expertos'],['profile','👤','Perfil']];
 return h`<div class="max-w-md mx-auto min-h-screen bg-bw relative shadow-xl"><main class="px-5 pt-6 pb-28">
 ${scr==='home'&&h`<${Home} ans=${ans} prof=${prof} routine=${routine} go=${setScr}/>`}
-${scr==='routine'&&h`<${Routine} routine=${routine} setRoutine=${setRoutine} rem=${rem} setRem=${setRem}/>`}
+${scr==='routine'&&h`<${Routine} routine=${routine} setRoutine=${setRoutine} rem=${rem} setRem=${setRem} ans=${ans} gen=${gen} go=${setScr}/>`}
 ${scr==='qr'&&h`<${QR} addToRoutine=${addToRoutine}/>`}${scr==='chat'&&h`<${Chat}/>`}
 ${scr==='profile'&&h`<${Profile} ans=${ans} prof=${prof} setProf=${setProf} routine=${routine} rem=${rem} setRem=${setRem} reset=${reset}/>`}</main>
 <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur border-t border-rp flex justify-around pt-2" style=${{paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 8px)'}}>
